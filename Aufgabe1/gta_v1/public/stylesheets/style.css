@@ -181,7 +181,6 @@ a {
 
 /* ... your code here ... */
 
-
 .discovery {
   padding: 1.5rem;
 }
@@ -195,6 +194,8 @@ a {
   gap: 0.5rem;
   align-items: center;
   max-width: 600px;  
+  padding-right: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .discovery__search input[type="text"] {
@@ -260,9 +261,20 @@ a {
   margin-top: auto;
 }
 
-
-
-
 /* ### TODO ### Media Queries */
 
 /* ... your code here ... */
+
+@media (max-width: 850px) {
+  .row {
+    flex-direction: column;
+  }
+
+  [class^="col-"] {
+    width: 100%;
+  }
+
+  .discovery__search fieldset {
+    max-width: 100%;
+  }
+}
