@@ -152,6 +152,30 @@ a {
 
 /* ... your code here ... */
 
+.tagging {
+  padding: 1.5rem;
+}
+
+.tagging form fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tagging input,
+.tagging button {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.tagging fieldset {
+  border: 1px solid #cdcdcd;
+  padding: 1rem;
+}
+
+.tagging button {
+  margin-top: 0.5rem;
+}
 
 /* ### TODO ### Styles for Discovery component */
 
