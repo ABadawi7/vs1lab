@@ -43,11 +43,11 @@
                     <!--... location name input-->
 
                     <label for="name">Location Name:</label>
-                    <input type="text" name="name" id="name" Placeholder="e.g. Germersheimer Düne" maxlength="10" required>
+                    <input type="text" name="name" id="name" placeholder="e.g. Germersheimer Düne" maxlength="10" required>
 
                     <!--... hashtag input... -->
                     <label for="hashtag">Hashtag:</label>
-                    <input type="text" name="hashtag" id="hashtag" placeholder="e.g. #edu" pattern="^#.*" maxlength="10">
+                    <input type="text" name="hashtag" id="hashtag" placeholder="e.g. #edu" pattern="^#[A-Za-z]{1,9}$" maxlength="10">
 
                     <!--... Submit Tagging Form... -->
                     <button type="submit">Add Tag</button>
