@@ -154,6 +154,18 @@ function updateLocation() {
         document.getElementById('latitude-Discovery').value = latitude;
         document.getElementById('longitude-Discovery').value = longitude;
 
+
+        const mapManager = new MapManager();
+        
+        mapManager.initMap(latitude, longitude);
+        mapManager.updateMarkers(latitude, longitude);
+
+        document.getElementById("mapView").remove();
+        document.getElementById("mapDescription").remove();
+
+
+
+
     });
 }
 
