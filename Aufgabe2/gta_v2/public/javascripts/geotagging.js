@@ -151,8 +151,8 @@ function updateLocation() {
         document.getElementById('latitude-Tagging').value = latitude;
         document.getElementById('longitude-Tagging').value = longitude;
 
-        document.getElementById('latitude-Tagging').value = latitude;
-        document.getElementById('longitude-Tagging').value = longitude;
+        document.getElementById('latitude-Discovery').value = latitude;
+        document.getElementById('longitude-Discovery').value = longitude;
 
     });
 }
