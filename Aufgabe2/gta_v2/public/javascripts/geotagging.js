@@ -155,7 +155,7 @@ function updateLocation() {
         document.getElementById('longitude-Discovery').value = longitude;
 
 
-        const mapManager = new MapManager();
+        let mapManager = new MapManager();
         
         mapManager.initMap(latitude, longitude);
         mapManager.updateMarkers(latitude, longitude);
