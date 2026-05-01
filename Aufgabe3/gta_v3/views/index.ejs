@@ -47,8 +47,7 @@
                     <input type="number" name="latitude" id="latitude-Tagging" value="<%= typeof latitude !== 'undefined' && latitude !== 0 && latitude !== '' ? latitude : '49.013790' %>" min="-90" max="90" readonly>
                     <!--... longitude input...-->
                     <label for="longitude-Tagging">Longitude</label>
-                   <input type="number" name="longitude" id="longitude-Tagging" value="<%= typeof longitude !== 'undefined' && longitude !== 0 && longitude !== '' ? longitude : '8.390071' %>" min="-180" max="180" readonly>
-
+                    <input type="number" name="longitude" id="longitude-Tagging" value="<%= typeof longitude !== 'undefined' && longitude !== 0 && longitude !== '' ? longitude : '8.390071' %>" min="-180" max="180" readonly>
                     <!--... location name input-->
 
                     <label for="name">Location Name:</label>
@@ -114,24 +113,13 @@
                         </ul>
                 </div>
 
-                
-                <div id="map" class="discovery__map col-6">
-                    
-                        <span id = "mapDescription">Result map</span>
-                </div>
-            </div>
-            
-
-
-
+              <div class="col-6">
+             <div id="map" class="discovery__map" data-tags='<%- JSON.stringify(taglist) %>'
+               </div>
+               <span id="mapDescription">Result map</span>
+               </div>
             </section>
-
-
-
-
         </div>
-        
-
     </main>
 
     <footer class="footer">

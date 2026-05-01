@@ -63,7 +63,10 @@ function updateLocation() {
         discoveryLongitude.value = longitude;
 
         mapManager.initMap(latitude, longitude);
-        mapManager.updateMarkers(latitude, longitude);
+        const mapElement = document.getElementById("map");
+        const taglistJson = mapElement.dataset.tags;
+        const taglist = taglistJson ? JSON.parse(taglistJson) : [];
+        mapManager.updateMarkers(latitude, longitude, taglist);
     }
 
     if (taggingLatitude.value !== "" && taggingLongitude.value !== "") {
