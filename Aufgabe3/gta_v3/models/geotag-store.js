@@ -62,8 +62,8 @@ class InMemoryGeoTagStore{
 
         return nearbyGoeTags.filter(gtag =>{
             return (
-                gtag.name.toLowerCase().inclusdes(searchText) ||
-                gtag.hashtag.toLowerCase().inclusdes(searchText)
+                String(gtag.name).toLowerCase().includes(searchText) ||
+                String(gtag.hashtag).toLowerCase().includes(searchText)
             );
         });
     }
