@@ -42,7 +42,8 @@ app.use(express.urlencoded({ extended: false }));
  * Test the result in a browser here: 'http://localhost:3000/'.
  */
 
-// TODO: ... your code here ...
+// TODO: ... your code here ... (erledig)
+app.use(express.static(path.join(__dirname,'public')));
 
 // Set dedicated script for routing
 app.use('/', indexRouter);
