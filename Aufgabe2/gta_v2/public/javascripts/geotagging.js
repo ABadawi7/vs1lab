@@ -163,9 +163,6 @@ function updateLocation() {
         document.getElementById("mapView").remove();
         document.getElementById("mapDescription").remove();
 
-
-
-
     });
 }
 
