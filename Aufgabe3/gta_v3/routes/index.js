@@ -87,7 +87,7 @@ router.post('/discovery', (req, res) => {
   let taglist;
 
   if (searchterm && searchterm.trim() !== '') {
-    taglist = geoTagStore.searchNearbyGeoTags(latitude, longitude, 1, searchterm);
+    taglist = geoTagStore.searchNearbyGeoTags(latitude, longitude, 100, searchterm);
   } else {
     taglist = geoTagStore.getNearbyGeoTags(latitude, longitude,1);
   }
