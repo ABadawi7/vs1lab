@@ -235,6 +235,9 @@ a {
   background-color: #f9f9f9;
   border: 1px solid #cdcdcd;
   border-radius: 6px;
+  height: 400px;
+  max-height: 400px;
+  min-height: 400px;
 }
 
 .discovery__map img {
