@@ -11,22 +11,22 @@ console.log("The geoTagging script is going to start...");
 
 // Here the API used for geolocations is selected
 // The following declaration is a 'mockup' that always works and returns a fixed position.
-var GEOLOCATION_API = {
-    getCurrentPosition: function(onsuccess) {
-        onsuccess({
-            "coords": {
-                "latitude": 49.013790,
-                "longitude": 8.390071,
-                "altitude": null,
-                "accuracy": 39,
-                "altitudeAccuracy": null,
-                "heading": null,
-                "speed": null
-            },
-            "timestamp": 1775140116396
-        });
-    }
-};
+// var GEOLOCATION_API = {
+//     getCurrentPosition: function(onsuccess) {
+//         onsuccess({
+//             "coords": {
+//                 "latitude": 49.013790,
+//                 "longitude": 8.390071,
+//                 "altitude": null,
+//                 "accuracy": 39,
+//                 "altitudeAccuracy": null,
+//                 "heading": null,
+//                 "speed": null
+//             },
+//             "timestamp": 1775140116396
+//         });
+//     }
+// };
 
 // This is the real API.
 // If there are problems with it, comment out the line.
@@ -47,40 +47,48 @@ GEOLOCATION_API = navigator.geolocation;
  */
 // ... your code here ...
 function updateLocation() {
-    const taggingLatitude = document.getElementById("latitude-Tagging");
-    const taggingLongitude = document.getElementById("longitude-Tagging");
-
-    const discoveryLatitude = document.getElementById("latitude-Discovery");
-    const discoveryLongitude = document.getElementById("longitude-Discovery");
-
     const mapManager = new MapManager();
-
-    function setLocation(latitude, longitude) {
-        taggingLatitude.value = latitude;
-        taggingLongitude.value = longitude;
-
-        discoveryLatitude.value = latitude;
-        discoveryLongitude.value = longitude;
-
-        const mapElement = document.getElementById("map");
-        const taglistJson = mapElement.dataset.tags;
-        const taglist = taglistJson ? JSON.parse(taglistJson) : [];
-
-        if (taglist.length > 0) {
-            mapManager.initMap(taglist[0].latitude, taglist[0].longitude);
-        } else {
-            mapManager.initMap(latitude, longitude);
-        }
-
-        mapManager.updateMarkers(latitude, longitude, taglist);
+    const mapImage = document.getElementById('mapView');
+    const mapDescription = document.getElementById('mapDescription');
+    
+    let dLat = document.getElementById('latitude-Discovery').value;
+    let dLong = document.getElementById('longitude-Discovery').value;
+    
+    // Altes Map-View und Beschreibung entfernen, falls sie existieren
+    if (mapImage) {
+        mapImage.remove();
     }
+    if (mapDescription) {
+        mapDescription.remove();
+    }
+    
+    // Wenn keine Koordinaten vorhanden sind, Standort neu ermitteln
+    if (!dLat && !dLong) { 
+        LocationHelper.findLocation(function (locationHelper) {
+            const latitude = locationHelper.latitude;
+            const longitude = locationHelper.longitude;
 
-    if (taggingLatitude.value !== "" && taggingLongitude.value !== "") {
-        setLocation(taggingLatitude.value, taggingLongitude.value);
-    } else {
-        LocationHelper.findLocation((location) => {
-            setLocation(location.latitude, location.longitude);
+            document.getElementById('latitude-Tagging').value = latitude;
+            document.getElementById('longitude-Tagging').value = longitude;
+
+            document.getElementById('latitude-Discovery').value = latitude;
+            document.getElementById('longitude-Discovery').value = longitude;
+
+            const taglist_json = document.getElementById('map').getAttribute('data-tags');
+            
+            mapManager.initMap(latitude, longitude);
+            mapManager.updateMarkers(latitude, longitude, JSON.parse(taglist_json));
+
+            console.log('Latitude:', latitude);
+            console.log('Longitude:', longitude);
         });
+    } 
+    // Wenn Koordinaten bereits da sind, diese direkt nutzen
+    else {
+        const taglist_json = document.getElementById('map').getAttribute('data-tags');
+        
+        mapManager.initMap(dLat, dLong);
+        mapManager.updateMarkers(dLat, dLong, JSON.parse(taglist_json));
     }
 }
 
