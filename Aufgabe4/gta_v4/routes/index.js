@@ -13,6 +13,8 @@
 const express = require('express');
 const router = express.Router();
 
+
+
 /**
  * The module "geotag" exports a class GeoTagStore. 
  * It represents geotags.
@@ -28,6 +30,19 @@ const GeoTag = require('../models/geotag');
 const GeoTagStore = require('../models/geotag-store');
 
 // App routes (A3)
+
+const GeoTagExamples = require('../models/geotag-examples');
+
+
+// Create one in-memory store for all GeoTags.
+const geoTagStore = new GeoTagStore();
+
+// Add example GeoTags to the store.
+GeoTagExamples.tagList.forEach(tag => {
+  const geoTag = new GeoTag(tag[0], tag[1], tag[2], tag[3]);
+  geoTagStore.addGeoTag(geoTag);
+});
+
 
 /**
  * Route '/' for HTTP 'GET' requests.
@@ -57,6 +72,34 @@ router.get('/', (req, res) => {
  */
 
 // TODO: ... your code here ...
+
+router.get('/api/geotags', (req, res) => {
+  // Read query parameters from URL.
+  const latitude = req.query.latitude;
+  const longitude = req.query.longitude;
+  const searchterm = req.query.searchterm;
+  const radius = req.query.radius || 10;
+
+  let taglist;
+
+  // Search by location and keyword.
+  if (latitude && longitude && searchterm) {
+    taglist = geoTagStore.searchNearbyGeoTags(latitude, longitude, radius, searchterm);
+  }
+
+  // Search only by location.
+  else if (latitude && longitude) {
+    taglist = geoTagStore.getNearbyGeoTags(latitude, longitude, radius);
+  }
+
+  // If no location is given, return an empty list for now.
+  else {
+    taglist = [];
+  }
+
+  // Send GeoTags as JSON.
+  res.json(taglist);
+});
 
 
 /**
