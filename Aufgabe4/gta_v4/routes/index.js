@@ -179,6 +179,29 @@ router.get('/api/geotags/:id', (req, res) => {
  */
 
 // TODO: ... your code here ...
+router.put('/api/geotags/:id', (req, res) => {
+  // Read id from URL path.
+  const id = req.params.id;
+
+  // Read updated GeoTag data from JSON body.
+  const updatedGeoTag = new GeoTag(
+    req.body.name,
+    req.body.latitude,
+    req.body.longitude,
+    req.body.hashtag
+  );
+
+  // Update GeoTag in store.
+  const result = geoTagStore.updateGeoTag(id, updatedGeoTag);
+
+  // Return 404 if GeoTag does not exist.
+  if (!result) {
+    return res.status(404).json({ error: 'GeoTag not found' });
+  }
+
+  // Send updated GeoTag as JSON.
+  res.json(result);
+});
 
 
 /**
