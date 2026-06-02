@@ -216,5 +216,21 @@ router.put('/api/geotags/:id', (req, res) => {
  */
 
 // TODO: ... your code here ...
+router.delete('/api/geotags/:id', (req, res) => {
+  // Read id from URL path.
+  const id = req.params.id;
+
+  // Delete GeoTag from store.
+  const deletedGeoTag = geoTagStore.deleteGeoTag(id);
+
+  // Return 404 if GeoTag does not exist.
+  if (!deletedGeoTag) {
+    return res.status(404).json({ error: 'GeoTag not found' });
+  }
+
+  // Send deleted GeoTag as JSON.
+  res.json(deletedGeoTag);
+});
+
 
 module.exports = router;
