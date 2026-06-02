@@ -1,10 +1,49 @@
 class InMemoryGeoTagStore {
 
     #geoTags = [];
+    #nextId = 1;
 
-    // adds a geotag to the store
+    // adds a geotag to the store and gives it a unique id
     addGeoTag(geotag) {
+        geotag.id = this.#nextId;
+        this.#nextId++;
+
         this.#geoTags.push(geotag);
+
+        return geotag;
+    }
+
+    // returns one geotag by id
+    getGeoTagById(id) {
+        return this.#geoTags.find(gtag => gtag.id === Number(id));
+    }
+
+    // updates one geotag by id
+    updateGeoTag(id, updatedGeoTag) {
+        const index = this.#geoTags.findIndex(gtag => gtag.id === Number(id));
+
+        if (index === -1) {
+            return undefined;
+        }
+
+        updatedGeoTag.id = Number(id);
+        this.#geoTags[index] = updatedGeoTag;
+
+        return updatedGeoTag;
+    }
+
+    // deletes one geotag by id
+    deleteGeoTag(id) {
+        const index = this.#geoTags.findIndex(gtag => gtag.id === Number(id));
+
+        if (index === -1) {
+            return undefined;
+        }
+
+        const deletedGeoTag = this.#geoTags[index];
+        this.#geoTags.splice(index, 1);
+
+        return deletedGeoTag;
     }
 
     // remove all geotags with the given name.

@@ -115,6 +115,26 @@ router.get('/api/geotags', (req, res) => {
 
 // TODO: ... your code here ...
 
+router.post('/api/geotags', (req, res) => {
+  // Read GeoTag data from JSON body.
+  const name = req.body.name;
+  const latitude = req.body.latitude;
+  const longitude = req.body.longitude;
+  const hashtag = req.body.hashtag;
+
+  // Create new GeoTag object.
+  const geoTag = new GeoTag(name, latitude, longitude, hashtag);
+
+  // Add GeoTag to store.
+  geoTagStore.addGeoTag(geoTag);
+
+  // Send location header for the new resource.
+  res.location(`/api/geotags/${geoTag.id}`);
+
+  // Send created GeoTag as JSON.
+  res.status(201).json(geoTag);
+});
+
 
 /**
  * Route '/api/geotags/:id' for HTTP 'GET' requests.
