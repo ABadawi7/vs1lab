@@ -22,37 +22,45 @@ console.log("The geoTagging script is going to start...");
  */
 
 /**
- * TODO: 'updateLocation'
- * A function to retrieve the current location and update the page.
- * It is called once the page has been fully loaded.
+ * Reads the current browser location and writes it into both forms.
+ * The same function also creates the Leaflet map for the first time.
  */
-// ... your code here ...
 function updateLocation() {
+    // Get the latitude/longitude fields from the Tagging form.
     const taggingLatitude = document.getElementById("latitude-Tagging");
     const taggingLongitude = document.getElementById("longitude-Tagging");
 
+    // Get the hidden latitude/longitude fields from the Discovery form.
     const discoveryLatitude = document.getElementById("latitude-Discovery");
     const discoveryLongitude = document.getElementById("longitude-Discovery");
 
-    const mapManager = new MapManager();
+    // Store the MapManager globally so updateView() can update the same map later.
+    window.mapManager = new MapManager();
+    const mapManager = window.mapManager;
 
     function setLocation(latitude, longitude) {
+        // Write the found location into both forms.
         taggingLatitude.value = latitude;
         taggingLongitude.value = longitude;
 
         discoveryLatitude.value = latitude;
         discoveryLongitude.value = longitude;
 
+        // Read GeoTags that were rendered into the HTML by EJS on the first page load.
         const mapElement = document.getElementById("map");
         const taglistJson = mapElement.dataset.tags;
+
+        // JSON.parse converts JSON text from the HTML data attribute back into a JS array.
         const taglist = taglistJson ? JSON.parse(taglistJson) : [];
 
+        // If GeoTags already exist, center the map on the first tag. Otherwise use our location.
         if (taglist.length > 0) {
             mapManager.initMap(taglist[0].latitude, taglist[0].longitude);
         } else {
             mapManager.initMap(latitude, longitude);
         }
 
+        // Draw the current location and all known GeoTags as markers.
         mapManager.updateMarkers(latitude, longitude, taglist);
     }
 
@@ -69,11 +77,13 @@ function updateLocation() {
  */
 
 function updateView(tagList) {
-    // 1. Liste aktualisieren
+    // First update the visible result list in the Discovery area.
     var discoveryResults = document.getElementById("discoveryResults");
     if (discoveryResults) {
+        // Delete the old list entries before inserting the new result set.
         discoveryResults.innerHTML = ""; 
 
+        // tagList is a JS array that came from JSON returned by the REST API.
         tagList.forEach(function(tag) {     
             var li = document.createElement("li");
             li.innerHTML = tag.name + " (" + tag.latitude + ", " + tag.longitude + ") " + tag.hashtag;
@@ -82,8 +92,9 @@ function updateView(tagList) {
     }
 
    
-    var latInput = document.getElementById("latitude");     
-    var lonInput = document.getElementById("longitude");
+    // Then update the map markers with the same result list.
+    var latInput = document.getElementById("latitude-Discovery");
+    var lonInput = document.getElementById("longitude-Discovery");
     
     if (window.mapManager && latInput && lonInput) {        
         window.mapManager.updateMarkers(latInput.value, lonInput.value, tagList);
@@ -92,13 +103,16 @@ function updateView(tagList) {
 
 
 function readTagForm () {
+    // Read the current values from the Tagging form.
     var latitude = document.getElementById("latitude-Tagging").value;
     var longitude = document.getElementById("longitude-Tagging").value;
     var name = document.getElementById("name").value;
     var hashtag = document.getElementById("hashtag").value;
 
+    // If required values are missing, no GeoTag object can be created.
     if(!latitude || !longitude || !name ) return;
 
+    // This is a normal JavaScript object. It will later be converted to JSON.
     var geotag = {
         name : name,
         latitude : parseFloat(latitude),
@@ -115,50 +129,95 @@ async function handleDiscoveryForm() {
     var lon = document.getElementById("longitude-Discovery").value;
     var searchterm = document.getElementById("searchterm") ? document.getElementById("searchterm").value : "";
 
-   var res = await fetch('/api/geotags?latitude='+lat+'&longitude='+lon+'&searchterm='+searchterm,{
+    // URLSearchParams builds a safe query string, for example:
+    // latitude=49.01&longitude=8.39&searchterm=IWI
+    var params = new URLSearchParams({
+        latitude: lat,
+        longitude: lon,
+        searchterm: searchterm
+    });
+
+   // GET means: we only request data from the server, we do not create a new GeoTag.
+   var res = await fetch('/api/geotags?' + params.toString(),{
         method: "GET",                  //mit fetch und des ausgelesenen Werten die Geotags abfragen
         headers: {
             'Accept':'application/json'
         }
     });
 
+    // response.json() converts the JSON response from the server into a JS array/object.
     return await res.json();      //Response in JS-Objekt umwandeln
 }
 
 // Wait for the page to fully load its DOM content, then call updateLocation
-document.addEventListener("DOMContentLoaded", () => {
-    updateLocation();
+document.addEventListener("DOMContentLoaded", () => {           //  sobald die HTML-Seite fertig geladen ist startet dieser Code:
+    updateLocation();                                           //  Funktionaufruf updateLocation(): holt die aktuelle Position über LocationHelper, schreibt Latitude/Longitude in die Formularfelde und die Karte wird initialisiert und Marker gesetzt
 
-    const tagForm = document.getElementById("tag-form");
-    const discoveryForm = document.getElementById("discoveryFilterForm");
+    const tagForm = document.getElementById("tag-form");                        // Tagging-Formular wird gesucht
+    const discoveryForm = document.getElementById("discoveryFilterForm");       // Discovery-Formular wird gesucht
+                                                                                // beide male wird ein Event-Listener registriert
 
 
 if (tagForm) {
         tagForm.addEventListener("submit", async (event) => {
+             // Stop the browser from doing the old form submit with a full page reload.
              event.preventDefault();
-            
-              // TODO: Nächster Schritt -> Formular-Validierung & POST-Fetch
+
+              // Keep the HTML validation from the form, for example required/pattern/maxlength.
+              if (!tagForm.checkValidity()) {
+                  tagForm.reportValidity();
+                  return;
+              }
+
+              // Convert the form values into one GeoTag JS object.
               var geotag = readTagForm();
 
+              if (!geotag) {
+                  return;
+              }
 
-                fetch("/api/geotags", {
+              try {
+                // POST means: create a new resource on the server.
+                // The GeoTag object is sent as JSON in the request body.
+                var postResponse = await fetch("/api/geotags", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    // Content-Type tells Express that the request body contains JSON.
+                    "Content-Type": "application/json",
+                    // Accept tells the server that this client wants JSON as response.
+                    "Accept": "application/json"
                 },
+                // JSON.stringify converts the JS object into JSON text for the HTTP request.
                 body: JSON.stringify(geotag)
-              })
-              .then(response => response.json())
-              .then(result => console.log("GeoTag added:", result))
-              .catch(error => console.error("Fehler:", error));
+              });
 
+              // If the server returns an error status, stop here and jump to catch().
+              if (!postResponse.ok) {
+                  throw new Error("GeoTag could not be saved.");
+              }
 
-                fetch('/api/geotags?latitude='+geotag.latitude+'&longitude='+geotag.longitude, {                              
+              // After saving, load the nearby GeoTags again so list and map show the new state.
+              var params = new URLSearchParams({
+                  latitude: geotag.latitude,
+                  longitude: geotag.longitude
+              });
+
+                // This GET happens only after the POST above has finished successfully.
+                var nearbyResponse = await fetch('/api/geotags?' + params.toString(), {
                 headers: {"Accept":"application/json"} 
-            })
-                .then(response => response.json())                  
-                .then(nearbyGeoTags => updateView(nearbyGeoTags))  
-                .catch(error => console.error("Fehler:", error));
+            });
+
+              // Again check whether the server answered successfully.
+              if (!nearbyResponse.ok) {
+                  throw new Error("GeoTags could not be loaded.");
+              }
+
+                // Convert the JSON list into a JS array and redraw list/map.
+                var nearbyGeoTags = await nearbyResponse.json();
+                updateView(nearbyGeoTags);
+              } catch (error) {
+                  console.error("Fehler:", error);
+              }
 
         });
     } 
@@ -173,6 +232,7 @@ if(discoveryForm){
                     console.log(geotags);
                     return geotags;   
                 })
+                // Use the returned GeoTags to redraw the result list and the map markers.
                 .then(geotags => updateView(geotags))
                 .catch(error => console.error("Fehler:", error)); 
         });
