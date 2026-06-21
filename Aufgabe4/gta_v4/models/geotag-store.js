@@ -52,7 +52,7 @@ class InMemoryGeoTagStore {
     }
 
     // returns all geotags near a given location.
-    getNearbyGeoTags(latitude, longitude, radius = 10) {
+    getNearbyGeoTags(latitude, longitude, radius = 100) {
         return this.#geoTags.filter(gtag => {
             const distance = this._getDistanceInKm(
                 Number(latitude),
@@ -65,7 +65,7 @@ class InMemoryGeoTagStore {
     }
 
     // returns all nearby geotags that match a keyword.
-    searchNearbyGeoTags(latitude, longitude, radius = 10, keyword = "") {
+    searchNearbyGeoTags(latitude, longitude, radius = 100, keyword = "") {
         const nearbyGeoTags = this.getNearbyGeoTags(latitude, longitude, radius);
         const searchText = String(keyword).trim().toLowerCase();
 

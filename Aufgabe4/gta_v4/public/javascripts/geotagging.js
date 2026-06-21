@@ -27,6 +27,8 @@ console.log("The geoTagging script is going to start...");
  * It is called once the page has been fully loaded.
  */
 // ... your code here ...
+let mapManager;
+
 function updateLocation() {
     const taggingLatitude = document.getElementById("latitude-Tagging");
     const taggingLongitude = document.getElementById("longitude-Tagging");
@@ -34,7 +36,7 @@ function updateLocation() {
     const discoveryLatitude = document.getElementById("latitude-Discovery");
     const discoveryLongitude = document.getElementById("longitude-Discovery");
 
-    const mapManager = new MapManager();
+    mapManager = new MapManager();
 
     function setLocation(latitude, longitude) {
         taggingLatitude.value = latitude;
@@ -82,11 +84,11 @@ function updateView(tagList) {
     }
 
    
-    var latInput = document.getElementById("latitude");     
-    var lonInput = document.getElementById("longitude");
+    var latInput = document.getElementById("latitude-Tagging");     
+    var lonInput = document.getElementById("longitude-Tagging");
     
-    if (window.mapManager && latInput && lonInput) {        
-        window.mapManager.updateMarkers(latInput.value, lonInput.value, tagList);
+    if (mapManager && latInput && lonInput) {        
+        mapManager.updateMarkers(latInput.value, lonInput.value, tagList);
     }
 }
 
@@ -97,7 +99,7 @@ function readTagForm () {
     var name = document.getElementById("name").value;
     var hashtag = document.getElementById("hashtag").value;
 
-    if(!latitude || !longitude || !name ) return;
+    //if(!latitude || !longitude || !name ) return;
 
     var geotag = {
         name : name,

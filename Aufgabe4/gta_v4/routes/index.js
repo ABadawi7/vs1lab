@@ -78,7 +78,7 @@ router.get('/api/geotags', (req, res) => {
   const latitude = req.query.latitude;
   const longitude = req.query.longitude;
   const searchterm = req.query.searchterm;
-  const radius = req.query.radius || 100;
+  const radius = req.query.radius || 50;
 
   let taglist;
 
