@@ -104,27 +104,28 @@
             
             <!-- ############### VS1Lab 1a Form 2 End -->
             
-            <div class="discovery__wrapper row">
-                <div class="discovery__taglist col-6">
-                        <ul class="discovery__results" id="discoveryResults">
-                            <% if (taglist !== undefined) taglist.forEach(function(gtag) { %>
-                               <li><%= gtag.name %> ( <%= gtag.latitude %>, <%= gtag.longitude %>) <%= gtag.hashtag %></li>
-                            <% }); %>
-                        </ul>
-                </div>
+<div class="discovery__wrapper row">
+    
+    <div class="discovery__taglist col-6">
+        <ul class="discovery__results" id="discoveryResults">
+            <% if (typeof taglist !== 'undefined') { %>
+                <% taglist.forEach(function(gtag) { %>
+                   <li><%= gtag.name %> ( <%= gtag.latitude %>, <%= gtag.longitude %>) <%= gtag.hashtag %></li>
+                <% }); %>
+            <% } %>
+        </ul>
 
-                <div id="pagination-controls" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
-                            <button id="btn-prev" class="btn-page" disabled>&laquo; Vorherige</button>
-                            <span id="page-info">Seite <span id="current-page">1</span> von <span id="total-pages">1</span></span>
-                            <button id="btn-next" class="btn-page" disabled>Nächste &raquo;</button>
-                        </div>
+        <div id="pagination-controls" class="pagination-container">
+            <button id="btn-prev" class="btn-page" disabled>&laquo; Vorherige</button>
+            <span id="page-info">Seite <span id="current-page">1</span> von <span id="total-pages">1</span></span>
+            <button id="btn-next" class="btn-page" disabled>Nächste &raquo;</button>
+        </div>
+    </div> <div class="col-6">
+        <div id="map" class="discovery__map" data-tags='<%- JSON.stringify(taglist || []) %>'></div>
+        <span id="mapDescription">Result map</span>
+    </div>
 
-              <div class="col-6">
-             <div id="map" class="discovery__map" data-tags='<%- JSON.stringify(taglist || []) %>'>
-               </div>
-               <span id="mapDescription">Result map</span>
-               </div>
-               </div>
+</div>
             </section>
         </div>
     </main>
