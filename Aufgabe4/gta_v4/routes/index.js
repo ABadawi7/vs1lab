@@ -74,31 +74,50 @@ router.get('/', (req, res) => {
 // TODO: ... your code here ...
 
 router.get('/api/geotags', (req, res) => {
-  // Read query parameters from URL.
+  // 1. Query-Parameter auslesen
   const latitude = req.query.latitude;
   const longitude = req.query.longitude;
   const searchterm = req.query.searchterm;
   const radius = req.query.radius || 100;
 
+  // Paging-Parameter auslesen (mit Standardwerten)
+  const page = parseInt(req.query.page) || 1;
+  const perPage = parseInt(req.query.per_page) || 5; 
+
   let taglist;
 
-  // Search by location and keyword.
+  // Suche nach Location und Keyword
   if (latitude && longitude && searchterm) {
     taglist = geoTagStore.searchNearbyGeoTags(latitude, longitude, radius, searchterm);
   }
-
-  // Search only by location.
+  // Suche nur nach Location
   else if (latitude && longitude) {
     taglist = geoTagStore.getNearbyGeoTags(latitude, longitude, radius);
   }
-
-  // If no location is given, return an empty list for now.
+  // Zusatzaufgabe: Anfangs erscheinen alle GeoTags in der Nähe als Seitenmenge
   else {
-    taglist = [];
+    taglist = geoTagStore.getAllGeoTags ? geoTagStore.getAllGeoTags() : [];
   }
 
-  // Send GeoTags as JSON.
-  res.json(taglist);
+  // 2. Paging-Berechnung
+  const totalEntries = taglist.length;
+  const totalPages = Math.ceil(totalEntries / perPage);
+  const currentPage = Math.max(1, Math.min(page, totalPages || 1));
+  
+  const startIndex = (currentPage - 1) * perPage;
+  const endIndex = startIndex + perPage;
+  const paginatedTags = taglist.slice(startIndex, endIndex);
+
+  // 3. Strukturierte Antwort senden
+  res.json({
+    metadata: {
+      totalEntries: totalEntries,
+      totalPages: totalPages,
+      currentPage: currentPage,
+      perPage: perPage
+    },
+    geotags: paginatedTags
+  });
 });
 
 

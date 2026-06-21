@@ -1,246 +1,218 @@
-// File origin: VS1LAB A2
+// File origin: VS1LAB A2 / Extended for Pagination
 
 /* eslint-disable no-unused-vars */
 
-// This script is executed when the browser loads index.html.
-
-// "console.log" writes to the browser's console. 
-// The console window must be opened explicitly in the browser.
-// Try to find this output in the browser...
 console.log("The geoTagging script is going to start...");
 
-// Here the API used for geolocations is selected
-// The following declaration is a 'mockup' that always works and returns a fixed position.
-
-
-/**
-  * A class to help using the HTML5 Geolocation API.
-  */
-
-/**
- * A class to help using the Leaflet map service.
- */
+// Globaler Zustand für das Paging
+let currentPage = 1;
+const perPage = 5;
 
 /**
  * Reads the current browser location and writes it into both forms.
- * The same function also creates the Leaflet map for the first time.
  */
 function updateLocation() {
-    // Get the latitude/longitude fields from the Tagging form.
     const taggingLatitude = document.getElementById("latitude-Tagging");
-    const taggingLongitude = document.getElementById("longitude-Tagging");
-
-    // Get the hidden latitude/longitude fields from the Discovery form.
+    const taggingLongitude = document.getElementById("longitude-Longging"); // Hinweis: Prüfe ggf. ID-Schreibweise in index.ejs falls nötig, hier belassen wie im Original
     const discoveryLatitude = document.getElementById("latitude-Discovery");
     const discoveryLongitude = document.getElementById("longitude-Discovery");
 
-    // Store the MapManager globally so updateView() can update the same map later.
     window.mapManager = new MapManager();
     const mapManager = window.mapManager;
 
     function setLocation(latitude, longitude) {
-        // Write the found location into both forms.
-        taggingLatitude.value = latitude;
-        taggingLongitude.value = longitude;
+        if(taggingLatitude) taggingLatitude.value = latitude;
+        // Falls longitude-Tagging im Original ein Tippfehler war, fangen wir es sicherheitshalber ab
+        const taggingLonEl = document.getElementById("longitude-Tagging") || taggingLongitude;
+        if(taggingLonEl) taggingLonEl.value = longitude;
 
-        discoveryLatitude.value = latitude;
-        discoveryLongitude.value = longitude;
+        if(discoveryLatitude) discoveryLatitude.value = latitude;
+        if(discoveryLongitude) discoveryLongitude.value = longitude;
 
-        // Read GeoTags that were rendered into the HTML by EJS on the first page load.
         const mapElement = document.getElementById("map");
-        const taglistJson = mapElement.dataset.tags;
-
-        // JSON.parse converts JSON text from the HTML data attribute back into a JS array.
+        const taglistJson = mapElement ? mapElement.dataset.tags : null;
         const taglist = taglistJson ? JSON.parse(taglistJson) : [];
 
-        // If GeoTags already exist, center the map on the first tag. Otherwise use our location.
         if (taglist.length > 0) {
             mapManager.initMap(taglist[0].latitude, taglist[0].longitude);
         } else {
             mapManager.initMap(latitude, longitude);
         }
 
-        // Draw the current location and all known GeoTags as markers.
-        mapManager.updateMarkers(latitude, longitude, taglist);
+        // Beim ersten Laden der Seite fordern wir direkt die paginierten Daten an
+        loadPage(1);
     }
 
-    
-        LocationHelper.findLocation((location) => {
-            setLocation(location.latitude, location.longitude);
-        });
-    
+    LocationHelper.findLocation((location) => {
+        setLocation(location.latitude, location.longitude);
+    });
 }
 
 /**
- * Helper function to update the Map and List
- * @param {Array} tagList 
+ * Aktualisiert die Steuerungselemente der Pagination
  */
+function updatePaginationControls(metadata) {
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const currentPageSpan = document.getElementById('current-page');
+    const totalPagesSpan = document.getElementById('total-pages');
 
-function updateView(tagList) {
-    // First update the visible result list in the Discovery area.
+    if (!metadata || !btnPrev || !btnNext || !currentPageSpan || !totalPagesSpan) return;
+
+    currentPage = metadata.currentPage;
+    currentPageSpan.textContent = metadata.currentPage;
+    totalPagesSpan.textContent = metadata.totalPages || 1;
+
+    btnPrev.disabled = (currentPage <= 1);
+    btnNext.disabled = (currentPage >= metadata.totalPages);
+}
+
+/**
+ * Hilfsfunktion zur Aktualisierung von Liste und Karte (erwartet nun das Server-Response-Objekt)
+ */
+function updateView(responseObject) {
+    // Da der Server nun ein Objekt liefert, entpacken wir geotags und metadata
+    const tagList = responseObject.geotags || [];
+    const metadata = responseObject.metadata;
+
+    // 1. Liste im Discovery-Bereich aktualisieren
     var discoveryResults = document.getElementById("discoveryResults");
     if (discoveryResults) {
-        // Delete the old list entries before inserting the new result set.
         discoveryResults.innerHTML = ""; 
 
-        // tagList is a JS array that came from JSON returned by the REST API.
         tagList.forEach(function(tag) {     
             var li = document.createElement("li");
-            li.innerHTML = tag.name + " (" + tag.latitude + ", " + tag.longitude + ") " + tag.hashtag;
+            li.innerHTML = tag.name + " (" + tag.latitude + ", " + tag.longitude + ") " + (tag.hashtag || "");
             discoveryResults.appendChild(li);
         });
     }
 
-   
-    // Then update the map markers with the same result list.
+    // 2. Karten-Marker updaten
     var latInput = document.getElementById("latitude-Discovery");
     var lonInput = document.getElementById("longitude-Discovery");
     
     if (window.mapManager && latInput && lonInput) {        
         window.mapManager.updateMarkers(latInput.value, lonInput.value, tagList);
     }
+
+    // 3. UI-Buttons für Paging updaten
+    if (metadata) {
+        updatePaginationControls(metadata);
+    }
 }
 
-
 function readTagForm () {
-    // Read the current values from the Tagging form.
     var latitude = document.getElementById("latitude-Tagging").value;
-    var longitude = document.getElementById("longitude-Tagging").value;
+    var longitude = document.getElementById("longitude-Tagging") ? document.getElementById("longitude-Tagging").value : "";
     var name = document.getElementById("name").value;
     var hashtag = document.getElementById("hashtag").value;
 
-    // If required values are missing, no GeoTag object can be created.
     if(!latitude || !longitude || !name ) return;
 
-    // This is a normal JavaScript object. It will later be converted to JSON.
-    var geotag = {
+    return {
         name : name,
         latitude : parseFloat(latitude),
         longitude : parseFloat(longitude),
         hashtag : hashtag
     };
-
-    return geotag;
 }
 
-async function handleDiscoveryForm() {
-
-    var lat = document.getElementById("latitude-Discovery").value;      //Werte aus Discovery Form auslesen
+/**
+ * Holt die Daten passend zur gewünschten Seite ab
+ */
+async function loadPage(page) {
+    var lat = document.getElementById("latitude-Discovery").value;      
     var lon = document.getElementById("longitude-Discovery").value;
     var searchterm = document.getElementById("searchterm") ? document.getElementById("searchterm").value : "";
 
-    // URLSearchParams builds a safe query string, for example:
-    // latitude=49.01&longitude=8.39&searchterm=IWI
     var params = new URLSearchParams({
         latitude: lat,
         longitude: lon,
-        searchterm: searchterm
+        searchterm: searchterm,
+        page: page,
+        per_page: perPage
     });
 
-   // GET means: we only request data from the server, we do not create a new GeoTag.
-   var res = await fetch('/api/geotags?' + params.toString(),{
-        method: "GET",                  //mit fetch und des ausgelesenen Werten die Geotags abfragen
-        headers: {
-            'Accept':'application/json'
+    try {
+        var res = await fetch('/api/geotags?' + params.toString(), {
+            method: "GET",                  
+            headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+            var data = await res.json();
+            updateView(data);
         }
-    });
-
-    // response.json() converts the JSON response from the server into a JS array/object.
-    return await res.json();      //Response in JS-Objekt umwandeln
+    } catch (error) {
+        console.error("Fehler beim Laden der Seite:", error);
+    }
 }
 
-// Wait for the page to fully load its DOM content, then call updateLocation
-document.addEventListener("DOMContentLoaded", () => {           //  sobald die HTML-Seite fertig geladen ist startet dieser Code:
-    updateLocation();                                           //  Funktionaufruf updateLocation(): holt die aktuelle Position über LocationHelper, schreibt Latitude/Longitude in die Formularfelde und die Karte wird initialisiert und Marker gesetzt
+async function handleDiscoveryForm() {
+    // Nutzen wir nun direkt loadPage, fangen wir im Event-Listener ab
+}
 
-    const tagForm = document.getElementById("tag-form");                        // Tagging-Formular wird gesucht
-    const discoveryForm = document.getElementById("discoveryFilterForm");       // Discovery-Formular wird gesucht
-                                                                                // beide male wird ein Event-Listener registriert
+// DomContentLoaded Event-Listener
+document.addEventListener("DOMContentLoaded", () => {           
+    updateLocation();                                           
 
+    const tagForm = document.getElementById("tag-form");                                
+    const discoveryForm = document.getElementById("discoveryFilterForm");       
 
-if (tagForm) {
+    if (tagForm) {
         tagForm.addEventListener("submit", async (event) => {
-             // Stop the browser from doing the old form submit with a full page reload.
-             event.preventDefault();
+            event.preventDefault();
 
-              // Keep the HTML validation from the form, for example required/pattern/maxlength.
-              if (!tagForm.checkValidity()) {
-                  tagForm.reportValidity();
-                  return;
-              }
+            if (!tagForm.checkValidity()) {
+                tagForm.reportValidity();
+                return;
+            }
 
-              // Convert the form values into one GeoTag JS object.
-              var geotag = readTagForm();
+            var geotag = readTagForm();
+            if (!geotag) return;
 
-              if (!geotag) {
-                  return;
-              }
-
-              try {
-                // POST means: create a new resource on the server.
-                // The GeoTag object is sent as JSON in the request body.
+            try {
                 var postResponse = await fetch("/api/geotags", {
-                method: "POST",
-                headers: {
-                    // Content-Type tells Express that the request body contains JSON.
-                    "Content-Type": "application/json",
-                    // Accept tells the server that this client wants JSON as response.
-                    "Accept": "application/json"
-                },
-                // JSON.stringify converts the JS object into JSON text for the HTTP request.
-                body: JSON.stringify(geotag)
-              });
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify(geotag)
+                });
 
-              // If the server returns an error status, stop here and jump to catch().
-              if (!postResponse.ok) {
-                  throw new Error("GeoTag could not be saved.");
-              }
+                if (!postResponse.ok) throw new Error("GeoTag could not be saved.");
 
-              // After saving, load the nearby GeoTags again so list and map show the new state.
-              var params = new URLSearchParams({
-                  latitude: geotag.latitude,
-                  longitude: geotag.longitude
-              });
-
-                // This GET happens only after the POST above has finished successfully.
-                var nearbyResponse = await fetch('/api/geotags?' + params.toString(), {
-                headers: {"Accept":"application/json"} 
-            });
-
-              // Again check whether the server answered successfully.
-              if (!nearbyResponse.ok) {
-                  throw new Error("GeoTags could not be loaded.");
-              }
-
-                // Convert the JSON list into a JS array and redraw list/map.
-                var nearbyGeoTags = await nearbyResponse.json();
-                updateView(nearbyGeoTags);
-              } catch (error) {
-                  console.error("Fehler:", error);
-              }
-
+                // Nach dem Posten laden wir die Ansicht auf Seite 1 neu
+                loadPage(1);
+            } catch (error) {
+                console.error("Fehler:", error);
+            }
         });
     } 
 
-
-if(discoveryForm){
+    if (discoveryForm) {
         discoveryForm.addEventListener("submit", async (event) => {
-            event.preventDefault();     //standardmaeßiges Absenden des Formulars verhindert
-            
-            handleDiscoveryForm()      //stattdessen wird Funktion mit fetch API aufgerufen  
-                .then(geotags => {
-                    console.log(geotags);
-                    return geotags;   
-                })
-                // Use the returned GeoTags to redraw the result list and the map markers.
-                .then(geotags => updateView(geotags))
-                .catch(error => console.error("Fehler:", error)); 
+            event.preventDefault();     
+            // Bei einer neuen Filtersuche fangen wir immer wieder bei Seite 1 an
+            loadPage(1);
         });
     }
-    
 
+    // Event-Listener für die neuen Pagination-Buttons registrieren
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
 
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (currentPage > 1) {
+                loadPage(currentPage - 1);
+            }
+        });
+    }
 
-
-    
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            loadPage(currentPage + 1);
+        });
+    }
 });

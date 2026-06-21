@@ -264,6 +264,58 @@ a {
   margin-top: auto;
 }
 
+
+/* pagination
+
+/* Styles for Pagination Component (Zusatzaufgabe) */
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.btn-page {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #333;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-page:hover:not(:disabled) {
+  background-color: #e8f4ff;
+  border-color: var(--link-color);
+  color: var(--link-color);
+}
+
+.btn-page:disabled {
+  background-color: #f5f5f5;
+  color: #aaa;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: 0.85rem;
+  color: var(--gray-color);
+}
+
+#current-page {
+  font-weight: bold;
+  color: #2c3e50; /* Passend zu Header & Footer */
+}
+
 /* ### TODO ### Media Queries */
 
 /* ... your code here ... */

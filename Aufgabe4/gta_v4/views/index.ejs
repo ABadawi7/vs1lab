@@ -113,10 +113,17 @@
                         </ul>
                 </div>
 
+                <div id="pagination-controls" class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px;">
+                            <button id="btn-prev" class="btn-page" disabled>&laquo; Vorherige</button>
+                            <span id="page-info">Seite <span id="current-page">1</span> von <span id="total-pages">1</span></span>
+                            <button id="btn-next" class="btn-page" disabled>Nächste &raquo;</button>
+                        </div>
+
               <div class="col-6">
              <div id="map" class="discovery__map" data-tags='<%- JSON.stringify(taglist || []) %>'>
                </div>
                <span id="mapDescription">Result map</span>
+               </div>
                </div>
             </section>
         </div>

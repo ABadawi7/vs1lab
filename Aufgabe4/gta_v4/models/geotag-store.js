@@ -13,6 +13,11 @@ class InMemoryGeoTagStore {
         return geotag;
     }
 
+    // Returns all geotags in the store (needed for initial pagination)
+    getAllGeoTags() {
+        return this.#geoTags;
+    }
+
     // returns one geotag by id
     getGeoTagById(id) {
         return this.#geoTags.find(gtag => gtag.id === Number(id));
